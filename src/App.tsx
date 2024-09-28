@@ -110,7 +110,7 @@ function App() {
             <div>
                 <h2>Benchmarks</h2>
                 <p>
-                    This benchmark generates 5 MB of random ASCII text and then measures
+                    This benchmark generates 10 MB of random ASCII text and then measures
                     the encode and decode times.
                 </p>
             </div>
@@ -126,6 +126,7 @@ function App() {
                 >
                     Run Benchmarks
                 </button>
+                <p class="my-auto">(takes several seconds)</p>
             </div>
             <div>
                 <p>
@@ -164,7 +165,7 @@ function App() {
 }
 
 function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
-    const data = new Uint8Array(5_000_000);
+    const data = new Uint8Array(10_000_000);
     for (let i = 0; i < data.length; ++i) {
         data[i] = Math.floor((127 - 32) * Math.random()) + 32;
     }
