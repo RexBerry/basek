@@ -16,6 +16,8 @@ type BenchmarkResults = {
 };
 
 function App() {
+    const decodedTextPlaceholder = "The quick brown fox jumps over the lazy dog.";
+
     const [decodedText, setDecodedText] = createSignal("");
     const [encodedText, setEncodedText] = createSignal("");
     const [alphabet, setAlphabet] = createSignal(ALPHABET_94.slice(0, 85));
@@ -43,11 +45,12 @@ function App() {
                 <p>A family of efficient base-k binary-to-text encodings.</p>
             </div>
             <div>
-                <h2>Decoded Text</h2>
+                <h2>Text</h2>
                 <textarea
                     class="w-full h-56"
                     ref={decodedTextArea}
                     oninput={(e) => setDecodedText(e.target.value)}
+                    placeholder={`Example: ${decodedTextPlaceholder}`}
                 >
                     {decodedText()}
                 </textarea>
@@ -82,11 +85,15 @@ function App() {
                 </button>
             </div>
             <div>
-                <h2>Encoded Text</h2>
+                <h2>Encoded String</h2>
                 <textarea
                     class="break-all w-full h-20"
                     ref={encodedTextArea}
                     oninput={(e) => setEncodedText(e.target.value)}
+                    placeholder={
+                        `May contain whitespace.\n` +
+                        `Example: ${encodeText(decodedTextPlaceholder, alphabet())}`
+                    }
                 >
                     {encodedText()}
                 </textarea>
@@ -100,6 +107,10 @@ function App() {
                     class="break-all w-full h-12"
                     ref={alphabetTextArea}
                     oninput={(e) => setAlphabet(e.target.value)}
+                    placeholder={
+                        "Must be at least 2 characters.\n" +
+                        "Must have unique, non-whitespace, printable ASCII characters."
+                    }
                 >
                     {alphabet()}
                 </textarea>
