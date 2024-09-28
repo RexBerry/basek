@@ -111,7 +111,7 @@ export function encode(
     const prefixDivisor = placeValues[1];
     const secondPrefixDivisor = placeValues[2];
 
-    let encoded = new Uint8Array(Math.max(data.length, 2));
+    let encoded = new Uint8Array(Math.ceil(data.length * sizeFactor[base]) + 16);
     let length = 0;
 
     let lo = 0;
@@ -218,7 +218,7 @@ export function decode(data: string, encoding: BasekEncoding | string): Uint8Arr
     const prefixDivisor = placeValues[1];
     const secondPrefixDivisor = placeValues[2];
 
-    let decoded = new Uint8Array(16);
+    let decoded = new Uint8Array(Math.ceil(data.length / sizeFactor[base]) + 16);
     let length = 0;
 
     let lo = 0;
@@ -337,6 +337,7 @@ const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
 const placeValueCache: number[][] = [[], []];
+const sizeFactor: number[] = [0, 0];
 for (let base = 2; base <= 255; ++base) {
     let placeValue = 1;
     const placeValues = [placeValue];
@@ -346,6 +347,8 @@ for (let base = 2; base <= 255; ++base) {
     }
     placeValues.reverse();
     placeValueCache.push(placeValues);
+
+    sizeFactor.push(8 / Math.log2(base));
 }
 
 let cachedEncoding = new BasekEncoding(ALPHABET_94.slice(0, 85));
