@@ -2,14 +2,41 @@ import { encodeText, decodeText, CHARSET_94 } from "@root/lib/main";
 import { createSignal } from "solid-js";
 
 import "./App.pcss";
+import { createStore, SetStoreFunction } from "solid-js/store";
+
+type BenchmarkResults = {
+    base2Encode: number;
+    base2Decode: number;
+    base10Encode: number;
+    base10Decode: number;
+    base36Encode: number;
+    base36Decode: number;
+    base64Encode: number;
+    base64Decode: number;
+    base85Encode: number;
+    base85Decode: number;
+    btoaEncode: number;
+    atobDecode: number;
+};
 
 function App() {
     const [decodedText, setDecodedText] = createSignal("");
     const [encodedText, setEncodedText] = createSignal("");
     const [charset, setCharset] = createSignal(CHARSET_94.slice(0, 85));
-
-    const [decodeRate, setDecodeRate] = createSignal(0);
-    const [encodeRate, setEncodeRate] = createSignal(0);
+    const [benchResults, setBenchResults] = createStore({
+        base2Encode: 0,
+        base2Decode: 0,
+        base10Encode: 0,
+        base10Decode: 0,
+        base36Encode: 0,
+        base36Decode: 0,
+        base64Encode: 0,
+        base64Decode: 0,
+        base85Encode: 0,
+        base85Decode: 0,
+        btoaEncode: 0,
+        atobDecode: 0,
+    });
 
     let decodedTextArea!: HTMLTextAreaElement;
     let encodedTextArea!: HTMLTextAreaElement;
@@ -21,7 +48,7 @@ function App() {
         <div class="m-auto flex flex-col gap-4">
             <div>
                 <h1>Basek</h1>
-                <p>A family of efficient binary-to-text encodings.</p>
+                <p>A family of efficient base-k binary-to-text encodings.</p>
             </div>
             <div>
                 <h2>Decoded Text</h2>
@@ -33,26 +60,14 @@ function App() {
                     {decodedText()}
                 </textarea>
                 <p class="text-sm text-gray-500">
-                    {textEncoder.encode(decodedText()).length.toLocaleString()} bytes •{" "}
-                    {decodeRate().toLocaleString()} bytes/second decoded
+                    {textEncoder.encode(decodedText()).length.toLocaleString()} bytes
                 </p>
             </div>
             <div class="flex flex-row gap-2">
                 <button
                     onclick={() => {
                         try {
-                            const text = decodedText();
-                            const charsetValue = charset();
-                            const timeBegin = performance.now();
-                            const encoded = encodeText(text, charsetValue);
-                            const timeEnd = performance.now();
-                            const textLength = textEncoder.encode(text).length;
-                            const elapsedTime = Math.max(
-                                1e-4,
-                                Math.round(1000 * (timeEnd - timeBegin)) / 1e6,
-                            );
-                            setEncodeRate(Math.round(textLength / elapsedTime));
-                            encodedTextArea.value = encoded;
+                            encodedTextArea.value = encodeText(decodedText(), charset());
                             setEncodedText(encodedTextArea.value);
                         } catch (ex) {
                             alert(ex);
@@ -64,18 +79,7 @@ function App() {
                 <button
                     onclick={() => {
                         try {
-                            const text = encodedText();
-                            const charsetValue = charset();
-                            const timeBegin = performance.now();
-                            const decoded = decodeText(text, charsetValue);
-                            const timeEnd = performance.now();
-                            const textLength = textEncoder.encode(decoded).length;
-                            const elapsedTime = Math.max(
-                                1e-4,
-                                Math.round(1000 * (timeEnd - timeBegin)) / 1e6,
-                            );
-                            setDecodeRate(Math.round(textLength / elapsedTime));
-                            decodedTextArea.value = decoded;
+                            decodedTextArea.value = decodeText(encodedText(), charset());
                             setDecodedText(decodedTextArea.value);
                         } catch (ex) {
                             alert(ex);
@@ -95,8 +99,7 @@ function App() {
                     {encodedText()}
                 </textarea>
                 <p class="text-sm text-gray-500">
-                    {textEncoder.encode(encodedText()).length.toLocaleString()} bytes •{" "}
-                    {encodeRate().toLocaleString()} bytes/second encoded
+                    {textEncoder.encode(encodedText()).length.toLocaleString()} bytes
                 </p>
             </div>
             <div>
@@ -112,12 +115,193 @@ function App() {
                     {charset().length.toLocaleString()} characters
                 </p>
             </div>
+            <div>
+                <h2>Benchmarks</h2>
+                <p>
+                    This benchmark generates 5 MB of random ASCII text and then measures
+                    the encode and decode times.
+                </p>
+            </div>
+            <div class="flex flex-row gap-2">
+                <button
+                    onclick={() => {
+                        try {
+                            runBenchmark(setBenchResults);
+                        } catch (ex) {
+                            alert(ex);
+                        }
+                    }}
+                >
+                    Run Benchmarks
+                </button>
+            </div>
+            <div>
+                <p>
+                    Base-2 Encode: {benchResults.base2Encode.toLocaleString()} bytes/sec
+                </p>
+                <p>
+                    Base-2 Decode: {benchResults.base2Decode.toLocaleString()} bytes/sec
+                </p>
+            </div>
+            <div>
+                <p>
+                    Base-10 Encode: {benchResults.base10Encode.toLocaleString()} bytes/sec
+                </p>
+                <p>
+                    Base-10 Decode: {benchResults.base10Decode.toLocaleString()} bytes/sec
+                </p>
+            </div>
+            <div>
+                <p>
+                    Base-36 Encode: {benchResults.base36Encode.toLocaleString()} bytes/sec
+                </p>
+                <p>
+                    Base-36 Decode: {benchResults.base36Decode.toLocaleString()} bytes/sec
+                </p>
+            </div>
+            <div>
+                <p>
+                    Base-64 Encode: {benchResults.base64Encode.toLocaleString()} bytes/sec
+                </p>
+                <p>
+                    Base-64 Decode: {benchResults.base64Decode.toLocaleString()} bytes/sec
+                </p>
+            </div>
+            <div>
+                <p>
+                    Base-85 Encode: {benchResults.base85Encode.toLocaleString()} bytes/sec
+                </p>
+                <p>
+                    Base-85 Decode: {benchResults.base85Decode.toLocaleString()} bytes/sec
+                </p>
+            </div>
+            <div>
+                <p>btoa() Encode: {benchResults.btoaEncode.toLocaleString()} bytes/sec</p>
+                <p>atob() Decode: {benchResults.atobDecode.toLocaleString()} bytes/sec</p>
+            </div>
             <p class="m-auto justify-center text-gray-500">
                 Created by Rex Berry • View{" "}
                 <a href="https://github.com/RexBerry/basek">the source code</a> on GitHub
             </p>
         </div>
     );
+}
+
+function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
+    const data = new Uint8Array(5_000_000);
+    for (let i = 0; i < data.length; ++i) {
+        data[i] = Math.floor((127 - 32) * Math.random()) + 32;
+    }
+
+    const text = new TextDecoder().decode(data);
+    let encoded: string = "";
+    let decoded: string = "";
+
+    function calculateByteRate(seconds: number): number {
+        return Math.round(text.length / Math.max(1e-3, seconds));
+    }
+
+    const base2Charset = CHARSET_94.slice(0, 2);
+    const base10Charset = CHARSET_94.slice(0, 10);
+    const base36Charset = CHARSET_94.slice(0, 36);
+    const base64Charset = CHARSET_94.slice(0, 64);
+    const base85Charset = CHARSET_94.slice(0, 85);
+
+    const stopwatch = new Stopwatch();
+
+    stopwatch.start();
+    encoded = encodeText(text, base2Charset);
+    stopwatch.stop();
+    setBenchResults("base2Encode", calculateByteRate(stopwatch.elapsedSeconds()));
+    stopwatch.start();
+    decoded = decodeText(encoded, base2Charset);
+    stopwatch.stop();
+    setBenchResults("base2Decode", calculateByteRate(stopwatch.elapsedSeconds()));
+    if (decoded !== text) {
+        alert("Base-2 encode and decode gave an incorrect result");
+    }
+
+    stopwatch.start();
+    encoded = encodeText(text, base10Charset);
+    stopwatch.stop();
+    setBenchResults("base10Encode", calculateByteRate(stopwatch.elapsedSeconds()));
+    stopwatch.start();
+    decoded = decodeText(encoded, base10Charset);
+    stopwatch.stop();
+    setBenchResults("base10Decode", calculateByteRate(stopwatch.elapsedSeconds()));
+    if (decoded !== text) {
+        alert("Base-10 encode and decode gave an incorrect result");
+    }
+
+    stopwatch.start();
+    encoded = encodeText(text, base36Charset);
+    stopwatch.stop();
+    setBenchResults("base36Encode", calculateByteRate(stopwatch.elapsedSeconds()));
+    stopwatch.start();
+    decoded = decodeText(encoded, base36Charset);
+    stopwatch.stop();
+    setBenchResults("base36Decode", calculateByteRate(stopwatch.elapsedSeconds()));
+    if (decoded !== text) {
+        alert("Base-36 encode and decode gave an incorrect result");
+    }
+
+    stopwatch.start();
+    encoded = encodeText(text, base64Charset);
+    stopwatch.stop();
+    setBenchResults("base64Encode", calculateByteRate(stopwatch.elapsedSeconds()));
+    stopwatch.start();
+    decoded = decodeText(encoded, base64Charset);
+    stopwatch.stop();
+    setBenchResults("base64Decode", calculateByteRate(stopwatch.elapsedSeconds()));
+    if (decoded !== text) {
+        alert("Base-64 encode and decode gave an incorrect result");
+    }
+
+    stopwatch.start();
+    encoded = encodeText(text, base85Charset);
+    stopwatch.stop();
+    setBenchResults("base85Encode", calculateByteRate(stopwatch.elapsedSeconds()));
+    stopwatch.start();
+    decoded = decodeText(encoded, base85Charset);
+    stopwatch.stop();
+    setBenchResults("base85Decode", calculateByteRate(stopwatch.elapsedSeconds()));
+    if (decoded !== text) {
+        alert("Base-85 encode and decode gave an incorrect result");
+    }
+
+    stopwatch.start();
+    encoded = btoa(text);
+    stopwatch.stop();
+    setBenchResults("btoaEncode", calculateByteRate(stopwatch.elapsedSeconds()));
+    stopwatch.start();
+    decoded = atob(encoded);
+    stopwatch.stop();
+    setBenchResults("atobDecode", calculateByteRate(stopwatch.elapsedSeconds()));
+    if (decoded !== text) {
+        alert("btoa() encode and atob() decode gave an incorrect result");
+    }
+}
+
+class Stopwatch {
+    private _startTime: number;
+    private _stopTime: number;
+
+    constructor() {
+        this._startTime = 0;
+        this._stopTime = 0;
+    }
+
+    start() {
+        this._startTime = performance.now();
+    }
+
+    stop() {
+        this._stopTime = performance.now();
+    }
+
+    elapsedSeconds(): number {
+        return Math.round(1000 * (this._stopTime - this._startTime)) / 1e6;
+    }
 }
 
 export default App;
