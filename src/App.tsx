@@ -1,4 +1,4 @@
-import { encodeText, decodeText, CHARSET_94 } from "@root/lib/main";
+import { encodeText, decodeText, ALPHABET_94, BasekEncoding } from "@root/lib/main";
 import { createSignal } from "solid-js";
 
 import "./App.pcss";
@@ -22,7 +22,7 @@ type BenchmarkResults = {
 function App() {
     const [decodedText, setDecodedText] = createSignal("");
     const [encodedText, setEncodedText] = createSignal("");
-    const [charset, setCharset] = createSignal(CHARSET_94.slice(0, 85));
+    const [alphabet, setAlphabet] = createSignal(ALPHABET_94.slice(0, 85));
     const [benchResults, setBenchResults] = createStore({
         base2Encode: 0,
         base2Decode: 0,
@@ -40,7 +40,7 @@ function App() {
 
     let decodedTextArea!: HTMLTextAreaElement;
     let encodedTextArea!: HTMLTextAreaElement;
-    let charsetTextArea!: HTMLTextAreaElement;
+    let alphabetTextArea!: HTMLTextAreaElement;
 
     const textEncoder = new TextEncoder();
 
@@ -67,7 +67,7 @@ function App() {
                 <button
                     onclick={() => {
                         try {
-                            encodedTextArea.value = encodeText(decodedText(), charset());
+                            encodedTextArea.value = encodeText(decodedText(), alphabet());
                             setEncodedText(encodedTextArea.value);
                         } catch (ex) {
                             alert(ex);
@@ -79,7 +79,7 @@ function App() {
                 <button
                     onclick={() => {
                         try {
-                            decodedTextArea.value = decodeText(encodedText(), charset());
+                            decodedTextArea.value = decodeText(encodedText(), alphabet());
                             setDecodedText(decodedTextArea.value);
                         } catch (ex) {
                             alert(ex);
@@ -103,16 +103,16 @@ function App() {
                 </p>
             </div>
             <div>
-                <h2>Character Set</h2>
+                <h2>Alphabet</h2>
                 <textarea
                     class="break-all w-full h-12"
-                    ref={charsetTextArea}
-                    oninput={(e) => setCharset(e.target.value)}
+                    ref={alphabetTextArea}
+                    oninput={(e) => setAlphabet(e.target.value)}
                 >
-                    {charset()}
+                    {alphabet()}
                 </textarea>
                 <p class="text-sm text-gray-500">
-                    {charset().length.toLocaleString()} characters
+                    {alphabet().length.toLocaleString()} characters
                 </p>
             </div>
             <div>
@@ -201,20 +201,20 @@ function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
         return Math.round(text.length / Math.max(1e-3, seconds));
     }
 
-    const base2Charset = CHARSET_94.slice(0, 2);
-    const base10Charset = CHARSET_94.slice(0, 10);
-    const base36Charset = CHARSET_94.slice(0, 36);
-    const base64Charset = CHARSET_94.slice(0, 64);
-    const base85Charset = CHARSET_94.slice(0, 85);
+    const base2Encoding = new BasekEncoding(ALPHABET_94.slice(0, 2));
+    const base10Encoding = new BasekEncoding(ALPHABET_94.slice(0, 10));
+    const base36Encoding = new BasekEncoding(ALPHABET_94.slice(0, 36));
+    const base64Encoding = new BasekEncoding(ALPHABET_94.slice(0, 64));
+    const base85Encoding = new BasekEncoding(ALPHABET_94.slice(0, 85));
 
     const stopwatch = new Stopwatch();
 
     stopwatch.start();
-    encoded = encodeText(text, base2Charset);
+    encoded = encodeText(text, base2Encoding);
     stopwatch.stop();
     setBenchResults("base2Encode", calculateByteRate(stopwatch.elapsedSeconds()));
     stopwatch.start();
-    decoded = decodeText(encoded, base2Charset);
+    decoded = decodeText(encoded, base2Encoding);
     stopwatch.stop();
     setBenchResults("base2Decode", calculateByteRate(stopwatch.elapsedSeconds()));
     if (decoded !== text) {
@@ -222,11 +222,11 @@ function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
     }
 
     stopwatch.start();
-    encoded = encodeText(text, base10Charset);
+    encoded = encodeText(text, base10Encoding);
     stopwatch.stop();
     setBenchResults("base10Encode", calculateByteRate(stopwatch.elapsedSeconds()));
     stopwatch.start();
-    decoded = decodeText(encoded, base10Charset);
+    decoded = decodeText(encoded, base10Encoding);
     stopwatch.stop();
     setBenchResults("base10Decode", calculateByteRate(stopwatch.elapsedSeconds()));
     if (decoded !== text) {
@@ -234,11 +234,11 @@ function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
     }
 
     stopwatch.start();
-    encoded = encodeText(text, base36Charset);
+    encoded = encodeText(text, base36Encoding);
     stopwatch.stop();
     setBenchResults("base36Encode", calculateByteRate(stopwatch.elapsedSeconds()));
     stopwatch.start();
-    decoded = decodeText(encoded, base36Charset);
+    decoded = decodeText(encoded, base36Encoding);
     stopwatch.stop();
     setBenchResults("base36Decode", calculateByteRate(stopwatch.elapsedSeconds()));
     if (decoded !== text) {
@@ -246,11 +246,11 @@ function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
     }
 
     stopwatch.start();
-    encoded = encodeText(text, base64Charset);
+    encoded = encodeText(text, base64Encoding);
     stopwatch.stop();
     setBenchResults("base64Encode", calculateByteRate(stopwatch.elapsedSeconds()));
     stopwatch.start();
-    decoded = decodeText(encoded, base64Charset);
+    decoded = decodeText(encoded, base64Encoding);
     stopwatch.stop();
     setBenchResults("base64Decode", calculateByteRate(stopwatch.elapsedSeconds()));
     if (decoded !== text) {
@@ -258,11 +258,11 @@ function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
     }
 
     stopwatch.start();
-    encoded = encodeText(text, base85Charset);
+    encoded = encodeText(text, base85Encoding);
     stopwatch.stop();
     setBenchResults("base85Encode", calculateByteRate(stopwatch.elapsedSeconds()));
     stopwatch.start();
-    decoded = decodeText(encoded, base85Charset);
+    decoded = decodeText(encoded, base85Encoding);
     stopwatch.stop();
     setBenchResults("base85Decode", calculateByteRate(stopwatch.elapsedSeconds()));
     if (decoded !== text) {

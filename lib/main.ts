@@ -11,89 +11,108 @@ Markdown code blocks: `
 Printable ASCII characters:
 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 */
-export const CHARSET_94 =
+export const ALPHABET_94 =
     `0123456789` +
     `ABCDEFGHIJKLMNOPQRSTUVWXYZ` +
     `abcdefghijklmnopqrstuvwxyz` +
     `-_|~^>.!()*+,;=@:[]{}'$#?/%<&"\\\``;
 
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
-let cachedCharset = "";
-const cachedCharsetDigitToChar = new Uint8Array(256);
-const cachedCharsetCharToDigit = new Uint8Array(256);
+export class BasekEncoding {
+    private readonly _charToDigit: Uint8Array;
+    private readonly _digitToChar: Uint8Array;
+    private readonly _alphabet: string;
 
-const placeValueCache: number[][] = [[], []];
-for (let base = 2; base <= 255; ++base) {
-    let placeValue = 1;
-    const placeValues = [placeValue];
-    while (base * placeValue <= (Number.MAX_SAFE_INTEGER + 1) / 256) {
-        placeValue *= base;
-        placeValues.push(placeValue);
+    constructor(alphabet: string) {
+        if (typeof alphabet !== "string") {
+            throw new TypeError("alphabet is not a string");
+        }
+
+        const charIndexes = new Map<number, number>();
+        for (let i = 0; i < alphabet.length; ++i) {
+            if (/\s/u.test(alphabet[i])) {
+                throw new Error("alphabet contains whitespace");
+            }
+
+            const charCode = alphabet.charCodeAt(i);
+            if (charCode > 127) {
+                throw new Error(`alphabet has non-ASCII character '${alphabet[i]}'`);
+            }
+
+            if (charIndexes.has(charCode)) {
+                throw new Error(`alphabet has repeated character '${alphabet[i]}'`);
+            }
+
+            charIndexes.set(charCode, i);
+        }
+
+        if (alphabet.length < 2) {
+            throw new Error("alphabet has fewer than 2 characters");
+        }
+
+        const charToDigit = new Uint8Array(256);
+        const digitToChar = new Uint8Array(256);
+
+        for (let i = 0; i < charToDigit.length; ++i) {
+            charToDigit[i] = 255;
+        }
+
+        for (const [char, index] of charIndexes.entries()) {
+            digitToChar[index] = char;
+            charToDigit[char] = index;
+        }
+
+        this._charToDigit = charToDigit;
+        this._digitToChar = digitToChar;
+        this._alphabet = alphabet;
     }
-    placeValues.reverse();
-    placeValueCache.push(placeValues);
+
+    get charToDigitMap(): Uint8Array {
+        return this._charToDigit;
+    }
+
+    get digitToCharMap(): Uint8Array {
+        return this._digitToChar;
+    }
+
+    get alphabet(): string {
+        return this._alphabet;
+    }
+
+    get base(): number {
+        return this._alphabet.length;
+    }
 }
 
-function cacheCharset(charset: string) {
-    if (charset === cachedCharset) {
-        return;
+export function encodeText(text: string, encoding: BasekEncoding | string): string {
+    if (typeof text !== "string") {
+        throw new TypeError("text is not a string");
     }
 
-    if (typeof charset !== "string") {
-        throw new TypeError("charset is not a string");
-    }
-
-    const charIndexes = new Map<number, number>();
-    for (let i = 0; i < charset.length; ++i) {
-        if (/\s/u.test(charset[i])) {
-            throw new Error("charset contains whitespace");
-        }
-
-        const charCode = charset.charCodeAt(i);
-        if (charCode > 127) {
-            throw new Error(`charset has non-ASCII character '${charset[i]}'`);
-        }
-
-        if (charIndexes.has(charCode)) {
-            throw new Error(`charset has repeated character '${charset[i]}'`);
-        }
-
-        charIndexes.set(charCode, i);
-    }
-
-    if (charset.length < 2) {
-        throw new Error("charset has fewer than 2 characters");
-    }
-
-    cachedCharset = "";
-
-    for (let i = 0; i < cachedCharsetCharToDigit.length; ++i) {
-        cachedCharsetCharToDigit[i] = 255;
-    }
-
-    for (const [char, index] of charIndexes.entries()) {
-        cachedCharsetDigitToChar[index] = char;
-        cachedCharsetCharToDigit[char] = index;
-    }
-
-    cachedCharset = charset;
+    return encode(textEncoder.encode(text), encoding);
 }
 
-export function encode(data: Uint8Array | Uint8ClampedArray, charset: string): string {
+export function decodeText(data: string, encoding: BasekEncoding | string): string {
+    return textDecoder.decode(decode(data.replaceAll(/\s/gu, ""), encoding));
+}
+
+export function encode(
+    data: Uint8Array | Uint8ClampedArray,
+    encoding: BasekEncoding | string,
+): string {
     if (!(data instanceof Uint8Array || data instanceof Uint8ClampedArray)) {
         throw new TypeError("data is not a Uint8Array or Uint8ClampedArray");
     }
 
-    cacheCharset(charset);
-    const base = charset.length;
-
-    let encoded = new Uint8Array(Math.max(data.length, 2));
-    let length = 0;
+    encoding = getEncoding(encoding);
+    const base = encoding.base;
+    const digitToChar = encoding.digitToCharMap;
 
     const placeValues = placeValueCache[base];
     const prefixDivisor = placeValues[1];
     const secondPrefixDivisor = placeValues[2];
+
+    let encoded = new Uint8Array(Math.max(data.length, 2));
+    let length = 0;
 
     let lo = 0;
     let hi = placeValues[0] - 1;
@@ -181,25 +200,26 @@ export function encode(data: Uint8Array | Uint8ClampedArray, charset: string): s
     }
 
     for (let i = 0; i < length; ++i) {
-        encoded[i] = cachedCharsetDigitToChar[encoded[i]];
+        encoded[i] = digitToChar[encoded[i]];
     }
     return textDecoder.decode(new Uint8Array(encoded.buffer, 0, length));
 }
 
-export function decode(data: string, charset: string): Uint8Array {
+export function decode(data: string, encoding: BasekEncoding | string): Uint8Array {
     if (typeof data !== "string") {
         throw new TypeError("data is not a string");
     }
 
-    cacheCharset(charset);
-    const base = charset.length;
-
-    let decoded = new Uint8Array(16);
-    let length = 0;
+    encoding = getEncoding(encoding);
+    const base = encoding.base;
+    const charToDigit = encoding.charToDigitMap;
 
     const placeValues = placeValueCache[base];
     const prefixDivisor = placeValues[1];
     const secondPrefixDivisor = placeValues[2];
+
+    let decoded = new Uint8Array(16);
+    let length = 0;
 
     let lo = 0;
     let hi = placeValues[0] - 1;
@@ -209,9 +229,9 @@ export function decode(data: string, charset: string): Uint8Array {
 
     let emitMultiple = true;
     for (let i = 0; i < data.length; ) {
-        const value = cachedCharsetCharToDigit[data.charCodeAt(i++)];
+        const value = charToDigit[data.charCodeAt(i++)];
         if (value === 255) {
-            throw new Error(`charset does not contain character '${data[i - 1]}'`);
+            throw new Error(`alphabet does not contain character '${data[i - 1]}'`);
         }
 
         encodedDigits += placeValues[++multIndex] * value;
@@ -287,18 +307,6 @@ export function decode(data: string, charset: string): Uint8Array {
     return result;
 }
 
-export function encodeText(text: string, charset: string): string {
-    if (typeof text !== "string") {
-        throw new TypeError("text is not a string");
-    }
-
-    return encode(textEncoder.encode(text), charset);
-}
-
-export function decodeText(data: string, charset: string): string {
-    return textDecoder.decode(decode(data.replaceAll(/\s/gu, ""), charset));
-}
-
 function emit(data: Uint8Array, value: number, index: number): Uint8Array {
     if (index === data.length) {
         const newLength = index + (index >> 1);
@@ -310,3 +318,34 @@ function emit(data: Uint8Array, value: number, index: number): Uint8Array {
     data[index] = value;
     return data;
 }
+
+function getEncoding(encoding: BasekEncoding | string): BasekEncoding {
+    if (typeof encoding === "string") {
+        if (encoding !== cachedEncoding.alphabet) {
+            cachedEncoding = new BasekEncoding(encoding);
+        }
+
+        encoding = cachedEncoding;
+    } else if (!(encoding instanceof BasekEncoding)) {
+        throw new TypeError("encoding is not a BasekEncoding or string");
+    }
+
+    return encoding;
+}
+
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+
+const placeValueCache: number[][] = [[], []];
+for (let base = 2; base <= 255; ++base) {
+    let placeValue = 1;
+    const placeValues = [placeValue];
+    while (base * placeValue <= (Number.MAX_SAFE_INTEGER + 1) / 256) {
+        placeValue *= base;
+        placeValues.push(placeValue);
+    }
+    placeValues.reverse();
+    placeValueCache.push(placeValues);
+}
+
+let cachedEncoding = new BasekEncoding(ALPHABET_94.slice(0, 85));
