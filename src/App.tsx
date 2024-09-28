@@ -1,6 +1,8 @@
 import { encodeText, decodeText } from "@root/lib/main";
 import { createSignal } from "solid-js";
 
+import "./App.pcss";
+
 function App() {
     const [decodedText, setDecodedText] = createSignal("");
     const [encodedText, setEncodedText] = createSignal("");
@@ -20,15 +22,19 @@ function App() {
     return (
         <div class="m-auto flex flex-col gap-4">
             <div>
+                <h1>Basek</h1>
+                <p>A family of efficient binary-to-text encodings.</p>
+            </div>
+            <div>
                 <h2>Decoded Text</h2>
                 <textarea
-                    class="w-1/2 h-48"
+                    class="w-full h-56"
                     ref={decodedTextArea}
                     oninput={(e) => setDecodedText(e.target.value)}
                 >
                     {decodedText()}
                 </textarea>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-500">
                     {textEncoder.encode(decodedText()).length.toLocaleString()} bytes •{" "}
                     {decodeRate().toLocaleString()} bytes/second decoded
                 </p>
@@ -84,13 +90,13 @@ function App() {
             <div>
                 <h2>Encoded Text</h2>
                 <textarea
-                    class="break-all w-1/2 h-48"
+                    class="break-all w-full h-20"
                     ref={encodedTextArea}
                     oninput={(e) => setEncodedText(e.target.value)}
                 >
                     {encodedText()}
                 </textarea>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-500">
                     {textEncoder.encode(encodedText()).length.toLocaleString()} bytes •{" "}
                     {encodeRate().toLocaleString()} bytes/second encoded
                 </p>
@@ -98,16 +104,20 @@ function App() {
             <div>
                 <h2>Character Set</h2>
                 <textarea
-                    class="break-all w-1/2 h-12"
+                    class="break-all w-full h-12"
                     ref={charsetTextArea}
                     oninput={(e) => setCharset(e.target.value)}
                 >
                     {charset()}
                 </textarea>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-gray-500">
                     {charset().length.toLocaleString()} characters
                 </p>
             </div>
+            <p class="m-auto justify-center text-gray-500">
+                Created by Rex Berry • View{" "}
+                <a href="https://github.com/RexBerry/basek">the source code</a> on GitHub
+            </p>
         </div>
     );
 }

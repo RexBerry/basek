@@ -15,7 +15,7 @@ export default {
                     // IMPORTANT: Do not enable ss05 (smart kerning),
                     // because it causes Chrome to freeze when displaying
                     // some long strings.
-                    fontFeatureSettings: "'ss03', 'ss04', 'cv02', 'cv08'",
+                    fontFeatureSettings: "'ss03' on, 'ss04' on, 'cv02' on, 'cv08' on",
                 },
             ],
         },

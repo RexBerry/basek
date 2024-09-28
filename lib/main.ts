@@ -27,6 +27,10 @@ function cacheCharset(charset: string) {
 
     const charIndexes = new Map<number, number>();
     for (let i = 0; i < charset.length; ++i) {
+        if (/\s/u.test(charset[i])) {
+            throw new Error("charset contains whitespace");
+        }
+
         const charCode = charset.charCodeAt(i);
         if (charCode > 127) {
             throw new Error(`charset has non-ASCII character '${charset[i]}'`);
@@ -273,7 +277,7 @@ export function encodeText(text: string, charset: string): string {
 }
 
 export function decodeText(data: string, charset: string): string {
-    return textDecoder.decode(decode(data, charset));
+    return textDecoder.decode(decode(data.replaceAll(/\s/gu, ""), charset));
 }
 
 function emit(data: Uint8Array, value: number, index: number): Uint8Array {
