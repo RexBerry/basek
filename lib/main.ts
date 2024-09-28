@@ -16,7 +16,6 @@ export const CHARSET_94 =
     `ABCDEFGHIJKLMNOPQRSTUVWXYZ` +
     `abcdefghijklmnopqrstuvwxyz` +
     `-_|~^>.!()*+,;=@:[]{}'$#?/%<&"\\\``;
-console.log(CHARSET_94.length);
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
