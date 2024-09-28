@@ -1,3 +1,23 @@
+/*
+Bad characters:
+URL sub delimiters: !$&'()*+,;=
+URL general delimiters: :/?#[]@
+URL percent-encoding: %
+Some strings: '${}
+XML: <&
+Strings: "\
+Markdown code blocks: `
+
+Printable ASCII characters:
+!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+*/
+export const CHARSET_94 =
+    `0123456789` +
+    `ABCDEFGHIJKLMNOPQRSTUVWXYZ` +
+    `abcdefghijklmnopqrstuvwxyz` +
+    `-_|~^>.!()*+,;=@:[]{}'$#?/%<&"\\\``;
+console.log(CHARSET_94.length);
+
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 let cachedCharset = "";

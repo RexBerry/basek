@@ -1,4 +1,4 @@
-import { encodeText, decodeText } from "@root/lib/main";
+import { encodeText, decodeText, CHARSET_94 } from "@root/lib/main";
 import { createSignal } from "solid-js";
 
 import "./App.pcss";
@@ -6,9 +6,7 @@ import "./App.pcss";
 function App() {
     const [decodedText, setDecodedText] = createSignal("");
     const [encodedText, setEncodedText] = createSignal("");
-    const [charset, setCharset] = createSignal(
-        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
-    );
+    const [charset, setCharset] = createSignal(CHARSET_94.slice(0, 85));
 
     const [decodeRate, setDecodeRate] = createSignal(0);
     const [encodeRate, setEncodeRate] = createSignal(0);
