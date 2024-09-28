@@ -1,0 +1,45 @@
+{
+    "name": "basek",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "main": "./dist/basek.cjs",
+    "module": "./dist/basek.js",
+    "files": [
+        "dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/basek.js",
+            "require": "./dist/basek.cjs"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "solid-js": "^1.8.20",
+        "solid-styled": "^0.11.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.11.0",
+        "@nabla/vite-plugin-eslint": "^2.0.4",
+        "@types/eslint__js": "^8.42.3",
+        "autoprefixer": "^10.4.20",
+        "eslint": "^9.11.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-prettier": "^5.2.1",
+        "globals": "^15.9.0",
+        "postcss": "^8.4.47",
+        "prettier": "^3.3.3",
+        "solid-devtools": "^0.30.1",
+        "tailwindcss": "^3.4.12",
+        "typescript": "^5.5.3",
+        "typescript-eslint": "^8.6.0",
+        "vite": "^5.4.1",
+        "vite-plugin-solid": "^2.10.2",
+        "vite-plugin-solid-styled": "^0.11.1"
+    }
+}
