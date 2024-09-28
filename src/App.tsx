@@ -5,12 +5,8 @@ import "./App.pcss";
 import { createStore, SetStoreFunction } from "solid-js/store";
 
 type BenchmarkResults = {
-    base2Encode: number;
-    base2Decode: number;
     base10Encode: number;
     base10Decode: number;
-    base36Encode: number;
-    base36Decode: number;
     base64Encode: number;
     base64Decode: number;
     base85Encode: number;
@@ -24,12 +20,8 @@ function App() {
     const [encodedText, setEncodedText] = createSignal("");
     const [alphabet, setAlphabet] = createSignal(ALPHABET_94.slice(0, 85));
     const [benchResults, setBenchResults] = createStore({
-        base2Encode: 0,
-        base2Decode: 0,
         base10Encode: 0,
         base10Decode: 0,
-        base36Encode: 0,
-        base36Decode: 0,
         base64Encode: 0,
         base64Decode: 0,
         base85Encode: 0,
@@ -137,26 +129,10 @@ function App() {
             </div>
             <div>
                 <p>
-                    Base-2 Encode: {benchResults.base2Encode.toLocaleString()} bytes/sec
-                </p>
-                <p>
-                    Base-2 Decode: {benchResults.base2Decode.toLocaleString()} bytes/sec
-                </p>
-            </div>
-            <div>
-                <p>
                     Base-10 Encode: {benchResults.base10Encode.toLocaleString()} bytes/sec
                 </p>
                 <p>
                     Base-10 Decode: {benchResults.base10Decode.toLocaleString()} bytes/sec
-                </p>
-            </div>
-            <div>
-                <p>
-                    Base-36 Encode: {benchResults.base36Encode.toLocaleString()} bytes/sec
-                </p>
-                <p>
-                    Base-36 Decode: {benchResults.base36Decode.toLocaleString()} bytes/sec
                 </p>
             </div>
             <div>
@@ -201,25 +177,11 @@ function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
         return Math.round(text.length / Math.max(1e-3, seconds));
     }
 
-    const base2Encoding = new BasekEncoding(ALPHABET_94.slice(0, 2));
     const base10Encoding = new BasekEncoding(ALPHABET_94.slice(0, 10));
-    const base36Encoding = new BasekEncoding(ALPHABET_94.slice(0, 36));
     const base64Encoding = new BasekEncoding(ALPHABET_94.slice(0, 64));
     const base85Encoding = new BasekEncoding(ALPHABET_94.slice(0, 85));
 
     const stopwatch = new Stopwatch();
-
-    stopwatch.start();
-    encoded = encodeText(text, base2Encoding);
-    stopwatch.stop();
-    setBenchResults("base2Encode", calculateByteRate(stopwatch.elapsedSeconds()));
-    stopwatch.start();
-    decoded = decodeText(encoded, base2Encoding);
-    stopwatch.stop();
-    setBenchResults("base2Decode", calculateByteRate(stopwatch.elapsedSeconds()));
-    if (decoded !== text) {
-        alert("Base-2 encode and decode gave an incorrect result");
-    }
 
     stopwatch.start();
     encoded = encodeText(text, base10Encoding);
@@ -231,18 +193,6 @@ function runBenchmark(setBenchResults: SetStoreFunction<BenchmarkResults>) {
     setBenchResults("base10Decode", calculateByteRate(stopwatch.elapsedSeconds()));
     if (decoded !== text) {
         alert("Base-10 encode and decode gave an incorrect result");
-    }
-
-    stopwatch.start();
-    encoded = encodeText(text, base36Encoding);
-    stopwatch.stop();
-    setBenchResults("base36Encode", calculateByteRate(stopwatch.elapsedSeconds()));
-    stopwatch.start();
-    decoded = decodeText(encoded, base36Encoding);
-    stopwatch.stop();
-    setBenchResults("base36Decode", calculateByteRate(stopwatch.elapsedSeconds()));
-    if (decoded !== text) {
-        alert("Base-36 encode and decode gave an incorrect result");
     }
 
     stopwatch.start();
