@@ -12,10 +12,8 @@ export default {
             mono: [
                 "CommitMono, monospace",
                 {
-                    // IMPORTANT: Do not enable ss05 (smart kerning),
-                    // because it causes Chrome to freeze when displaying
-                    // some long strings.
-                    fontFeatureSettings: "'ss03' on, 'ss04' on, 'cv02' on, 'cv08' on",
+                    // Font features have been baked into the font file
+                    // fontFeatureSettings: "'ss03' on, 'ss04' on, 'cv02' on, 'cv08' on",
                 },
             ],
         },
