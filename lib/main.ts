@@ -221,10 +221,12 @@ export function encode(
                     break;
                 }
 
-                lo = loPrefix * prefixDivisor + (lo % secondPrefixDivisor) * base;
+                lo =
+                    loPrefix * prefixDivisor +
+                    (lo - secondPrefixDivisor * loSecondPrefix) * base;
                 hi =
                     hiPrefix * prefixDivisor +
-                    (hi % secondPrefixDivisor) * base +
+                    (hi - secondPrefixDivisor * hiSecondPrefix) * base +
                     (base - 1);
 
                 ++deferredCount;
@@ -240,8 +242,8 @@ export function encode(
                 }
             }
 
-            lo = (lo % prefixDivisor) * base;
-            hi = (hi % prefixDivisor) * base + (base - 1);
+            lo = (lo - prefixDivisor * loPrefix) * base;
+            hi = (hi - prefixDivisor * hiPrefix) * base + (base - 1);
         }
     }
 
@@ -252,8 +254,8 @@ export function encode(
             encoded = emit(encoded, 0, encodedLength++);
         }
 
-        lo = (lo % prefixDivisor) * base;
-        hi = (hi % prefixDivisor) * base + (base - 1);
+        lo = 0;
+        hi = (hi - prefixDivisor * hiPrefix) * base + (base - 1);
     }
 
     // Ensure that all necessary information is in the encoded string
@@ -290,9 +292,9 @@ export function encode(
         if (loPrefix < hiPrefix) {
             lo = 0;
         } else {
-            lo = (lo % prefixDivisor) * base;
+            lo = (lo - prefixDivisor * loPrefix) * base;
         }
-        hi = (hi % prefixDivisor) * base + (base - 1);
+        hi = (hi - prefixDivisor * hiPrefix) * base + (base - 1);
     }
 
     for (let i = 0; i < encodedLength; ++i) {
@@ -400,10 +402,12 @@ export function decode(
                         break;
                     }
 
-                    lo = loPrefix * prefixDivisor + (lo % secondPrefixDivisor) * base;
+                    lo =
+                        loPrefix * prefixDivisor +
+                        (lo - secondPrefixDivisor * loSecondPrefix) * base;
                     hi =
                         hiPrefix * prefixDivisor +
-                        (hi % secondPrefixDivisor) * base +
+                        (hi - secondPrefixDivisor * hiSecondPrefix) * base +
                         (base - 1);
 
                     encodedDigits =
@@ -417,8 +421,8 @@ export function decode(
                     break;
                 }
 
-                lo = (lo % prefixDivisor) * base;
-                hi = (hi % prefixDivisor) * base + (base - 1);
+                lo = (lo - prefixDivisor * loPrefix) * base;
+                hi = (hi - prefixDivisor * hiPrefix) * base + (base - 1);
 
                 encodedDigits = (encodedDigits % prefixDivisor) * base;
                 --multIndex;

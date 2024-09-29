@@ -14,4 +14,10 @@ Basek uses range coding with up to 45 bits of precision, which in some cases red
 
 ## Performance
 
-This implementation of Basek, written in TypeScript, is quite slow. On my machine, the encoding and decoding speeds are approximately 20 MB/sec, which is around 50x slower than JavaScript's built-in `btoa()` and `atob()`. I do not know how much faster this implementation could be, given that floating-point division is used.
+This implementation of Basek, written in TypeScript, is quite slow. The following table shows approximate performance on my machine:
+| Function | Speed |
+| -------------- | ------: |
+| Base-85 Encode | 45 MB/s |
+| Base-85 Decode | 30 MB/s |
+| `btoa()` | 1 GB/s |
+| `atob()` | 1 GB/s |
