@@ -265,7 +265,9 @@ export function encode(
             // The range spans all possible values, so the last byte can be
             // determined unambiguously from the previously emitted bytes.
             // Emit a 0 to indicate that no more bytes should be decoded.
-            encoded = emit(encoded, 0, encodedLength++);
+            if (binaryData.length > 0) {
+                encoded = emit(encoded, 0, encodedLength++);
+            }
             break;
         }
 
